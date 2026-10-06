@@ -2,6 +2,7 @@ File ban đầu được đóng gói dạng `.wim` nên khả năng cao chứa d
 
 ```powershell
 Get-Item .\PolyjuicePotion.txt -Stream *
+
 ```
 <p align="center">
   <img src="img_assets/Pasted image 20261006080800.png">
@@ -10,6 +11,7 @@ Ta thấy một stream ẩn có tên `LordVoldemort` với độ dài 18 bytes
 
 ```powershell
 Get-Content .\PolyjuicePotion.txt -Stream LordVoldemort
+
 ```
 <p align="center">
   <img src="img_assets/Pasted image 20261006080943.png">
@@ -78,6 +80,7 @@ LABEL_18:
   WSACleanup();
   return 0;
 }
+
 ```
 
 Chương trình tạo Thread 1 mở socket 127.0.0 port 31337 chờ nhận chuỗi `OVERRIDE:` , phía dưới lệnh chạy thread này có sleep 10 giây
@@ -137,12 +140,14 @@ Tiếp theo đọc chuỗi `AlbusDumbledore` ra buffer từ `FileName` rồi gá
 </p>
 
 Ở đây tác giả obfus bằng cơ chế của window message (winproc) không gọi trực tiếp hàm mà thông qua window message
+
 ```cpp
 v36[0] = Buffer; // Chứa "AlbusDumbledore \r\n" 
 v36[1] = &sus; 
 v36[2] = check_time; 
 v36[3] = v20; 
 v39[1] = sub_7FF7A3001B20; // Con trỏ hàm WndProc (Window Procedure)
+
 ``` 
 Đăng kí `sub_7FF7A3001B20` bằng `RegisterClassExA`, `v36` thì truyền vào tham số cuối hàm `CreateWindowExA`
 
@@ -158,6 +163,7 @@ Cái hay là mặc dù `sub_7FF7A3001B20` chỉ được gọi duy nhất 1 lầ
   <img src="img_assets/Pasted image 20261006111234.png">
 </p>
 - Lần 3 thì hdh ném vào `Msg = 1` `WM_CREATE`: 
+
 ```c 
 	      if ( WindowLongPtrW )
     {
@@ -230,6 +236,7 @@ Cái hay là mặc dù `sub_7FF7A3001B20` chỉ được gọi duy nhất 1 lầ
       }
       return -1;
     }
+
 ``` 
 
 Lấy ra `v37` (`WindowLongPtrW + 32`) nãy được gán là `131` rồi xor với `Msg` là `1 = 130` (`0x82`)
@@ -322,6 +329,7 @@ Giờ debug file `Partner_CTF.exe` ngay sau khi nó kết nối được đến 
         *v27++ = *v30;
         *v30 = v29;
       }
+
 ```
 
 Đoạn này sài tập lệnh sse trông khá phức tạp cơ mà bên dưới là RC4 KSA, thực hiện hoán vị với key là `Buffer` (`"HarryPotter"`)
