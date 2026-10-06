@@ -4,16 +4,21 @@ File ban đầu được đóng gói dạng `.wim` nên khả năng cao chứa d
 Get-Item .\PolyjuicePotion.txt -Stream *
 
 ```
+
 <p align="center">
+
   <img src="img_assets/Pasted image 20261006080800.png">
 </p>
+
 Ta thấy một stream ẩn có tên `LordVoldemort` với độ dài 18 bytes
 
 ```powershell
 Get-Content .\PolyjuicePotion.txt -Stream LordVoldemort
 
 ```
+
 <p align="center">
+
   <img src="img_assets/Pasted image 20261006080943.png">
 </p>
 
@@ -86,9 +91,12 @@ LABEL_18:
 Chương trình tạo Thread 1 mở socket 127.0.0 port 31337 chờ nhận chuỗi `OVERRIDE:` , phía dưới lệnh chạy thread này có sleep 10 giây
 
 <p align="center">
+
   <img src="img_assets/Pasted image 20261006081410.png">
 </p>
+
 <p align="center">
+
   <img src="img_assets/Pasted image 20261006081444.png">
 </p>
 
@@ -96,46 +104,64 @@ Dùng sse khởi tạo mảng 256 phần tử trong `v28` rồi xáo trộn xong
 `GetSystemInfo`, `GlobalMemoryStatusEx`, `GetTickCount` lấy ram, cpu và thời gian rồi ghép với chuỗi `"Telemetry_%u_%x"` (xong cũng không sài, không trả về hay ghi đè vào `lpThreadParamater`)
 
 <p align="center">
+
   <img src="img_assets/Pasted image 20261006082317.png">
 </p>
 
 <p align="center">
+
   <img src="img_assets/Pasted image 20261006082329.png">
 </p>
 
 Đoạn này là logic quan trọng. Mặc định giá trị là 0 nên khối `if` này không bao giờ chạy, thử patch giá trị để chạy khối `if` thì ra được chuỗi:
+
 <p align="center">
+
   <img src="img_assets/Pasted image 20261006082435.png">
 </p>
+
 check `unk_7FF664D06668` thì chỉ có đúng mỗi đoạn này xref tới, cũng có giả thuyết chương trình phân giải địa chỉ động ở đoạn nào đó mà hardware breakpoint cũng không bắt được.
 
 Do `Paramater[3]` là con trỏ `Filename` (ban đầu chương trình dùng `strrchr` thay `\` thành `0x0` để cắt tên fiel thực thi, rồi `sprintf` để ghép với `\PolyjuicePotion.txt`)
+
 <p align="center">
+
   <img src="img_assets/Pasted image 20261006082537.png">
 </p>
+
 <p align="center">
+
   <img src="img_assets/Pasted image 20261006090949.png">
 </p>
+
 <p align="center">
+
   <img src="img_assets/Pasted image 20261006092324.png">
 </p>
+
 <p align="center">
+
   <img src="img_assets/Pasted image 20261006092059.png">
 </p>
 
 Quay lại hàm `main`:
+
 <p align="center">
+
   <img src="img_assets/Pasted image 20261006092615.png">
 </p>
+
 Resolve ra `NtSetInformationThread`, theo [tài liệu](https://anti-debug.checkpoint.com/techniques/interactive.html#ntsetinformationthread) thì nó là antidebug để giấu main thread khỏi debugger, f8 f9 thì chương trình sẽ tiếp tục chạy mà không va vào cái bp nào nữa. Đổi tham số `0x11` thành `0x0`, `rcx = -2` thì là `NtCurrentThread()` (`[[Pseudo Handle]]`).
 
 <p align="center">
+
   <img src="img_assets/Pasted image 20261006093610.png">
 </p>
 
 Tiếp theo đọc chuỗi `AlbusDumbledore` ra buffer từ `FileName` rồi gán phần tử cuối là null terminator.
 
 <p align="center">
+
   <img src="img_assets/Pasted image 20261006093827.png">
 </p>
 
@@ -154,14 +180,20 @@ v39[1] = sub_7FF7A3001B20; // Con trỏ hàm WndProc (Window Procedure)
 > The **CreateWindowEx** function sends WM_NCCREATE, WM_NCCALCSIZE, and WM_CREATE messages to the window being created. (https://winapi.freetechsecrets.com/win32/WIN32CreateWindowEx.htm)
 
 Cái hay là mặc dù `sub_7FF7A3001B20` chỉ được gọi duy nhất 1 lần trong `main` nhưng cơ chế của `CreateWindowExA` thì lại gọi nó tới 3 lần lận:
-- Lần 1 hdh ném vào `Msg = 129` `WM_NCCREATE`: Lấy tham số chứa chuỗi `"AlbusDumbledore"` (`v36[0]`) từ hàm `main` cất vào bộ nhớ ngầm của cửa sổ `SetWindowLongPtrW` xong return 
-		<p align="center">
+- Lần 1 hdh ném vào `Msg = 129` `WM_NCCREATE`: Lấy tham số chứa chuỗi `"AlbusDumbledore"` (`v36[0]`) từ hàm `main` cất vào bộ nhớ ngầm của cửa sổ `SetWindowLongPtrW` xong return
+
+<p align="center">
+
   <img src="img_assets/Pasted image 20261006111049.png">
 </p>
+
 - Lần 2 hdh ném vào `Msg = 131` `WM_NCCALCSIZE`: không phải 129 nên nhảy vào nhánh `else`. Lưu giá trị `131` vào `v37`, xong vì là `131 != 1` nên nó gọi `DefWindowProcW`
-	 <p align="center">
+
+<p align="center">
+
   <img src="img_assets/Pasted image 20261006111234.png">
 </p>
+
 - Lần 3 thì hdh ném vào `Msg = 1` `WM_CREATE`: 
 
 ```c 
@@ -245,36 +277,51 @@ Lấy ra `v37` (`WindowLongPtrW + 32`) nãy được gán là `131` rồi xor v�
 `WindowLongPtrW + 24` là `v20` được tính trong `main` (`0x2760`)
 
 Đoạn này cần patch để đi vào nhánh `else` tại `v17` (`v36[1]`) trong `if` tính xong không sài trong `main`
+
 <p align="center">
+
   <img src="img_assets/Pasted image 20261006162914.png">
 </p>
+
 Nhánh `else` thì có đụng vào chuỗi `AlbusDumbledore` hồi nãy, nó xor với key (`0x82`), rồi xor từng kí tự với các giá trị đã biết và kết quả ra được `HarryPotter` (đoạn này ban đầu mình không để ý và không patch nên hàm `main` gửi chuỗi `AlbusDumbledore` qua server mà vẫn không ra flag)
+
 <p align="center">
+
   <img src="img_assets/Pasted image 20261006164543.png">
 </p>
 
 1 hint từ tác giả khi check kí tự đầu tiên `== A` thì in ra `[*] The Polyjuice Potion is still effective, preventing the true identity from being revealed.` nên chuỗi `HarryPotter` là chuẩn.
+
 <p align="center">
+
   <img src="img_assets/Pasted image 20261006165235.png">
 </p>
 
 Tiếp theo tạo pipe `\\.\pipe\FlareChallenge`
+
 <p align="center">
+
   <img src="img_assets/Pasted image 20261006165552.png">
 </p>
 
 `sub_7FF7A3001400` đọc resource `"BIN"` rồi tạo file `Partner_CTF.exe` trong thư mục `%TEMP%` `GetTempPathW`. Dùng `CreateProcessW` để tạo dump file ra temp đồng thời chạy luôn.
+
 <p align="center">
+
   <img src="img_assets/Pasted image 20261006165950.png">
 </p>
 
 Cuối cùng là mở pipe, `WriteFile` để viết toàn bộ chuỗi `HarryPotter` vào pipe
+
 <p align="center">
+
   <img src="img_assets/Pasted image 20261006170319.png">
 </p>
 
-Giờ debug file `Partner_CTF.exe` ngay sau khi nó kết nối được đến pipe nhờ hàm `CreateFileA()`. Ngay sau khi `GhostStream.exe` gọi `WriteFile` để ghi `HarryPotter` vào pipe thì bên server cũng gọi `ReadFile` để đọc chuỗi đó ra 
+Giờ debug file `Partner_CTF.exe` ngay sau khi nó kết nối được đến pipe nhờ hàm `CreateFileA()`. Ngay sau khi `GhostStream.exe` gọi `WriteFile` để ghi `HarryPotter` vào pipe thì bên server cũng gọi `ReadFile` để đọc chuỗi đó ra
+
 <p align="center">
+
   <img src="img_assets/Pasted image 20261006172323.png">
 </p>
 
@@ -335,46 +382,64 @@ Giờ debug file `Partner_CTF.exe` ngay sau khi nó kết nối được đến 
 Đoạn này sài tập lệnh sse trông khá phức tạp cơ mà bên dưới là RC4 KSA, thực hiện hoán vị với key là `Buffer` (`"HarryPotter"`)
 
 <p align="center">
+
   <img src="img_assets/Pasted image 20261006173456.png">
 </p>
 
 Đoạn này khá hiểm vì `v8` nãy được lấy từ `qword_140005678` (địa chỉ `strlen` xor `0xDEADBEEF` rồi `+ 270544960`)
+
 <p align="center">
+
   <img src="img_assets/Pasted image 20261006173548.png">
 </p>
-Xong xor lại rồi trừ `270544960` rồi cấp quyền `PAGE_EXECUTE_READWRITE` 
+
+Xong xor lại rồi trừ `270544960` rồi cấp quyền `PAGE_EXECUTE_READWRITE`
+
 <p align="center">
+
   <img src="img_assets/Pasted image 20261006174456.png">
 </p>
 
 Ở dưới tiếp tục gọi `strlen` cho chuỗi `"Wingardium Leviosa"` (18)
+
 <p align="center">
+
   <img src="img_assets/Pasted image 20261006174047.png">
 </p>
 
 F7 vào thì thấy code hàm `strlen` đã bị thay đổi, đó cũng là lí do gọi `VirtualProtect` để xin quyền `PAGE_EXECUTE_READWRITE` và mấy đoạn code ghi đè shellcode bên dưới.
+
 <p align="center">
+
   <img src="img_assets/Pasted image 20261006174136.png">
 </p>
 
 Xor `eax` đưa `zf = 1` xong cộng `0x13` (19), `jnz` sẽ nhảy vì `ADD` thay đổi `zf = 0`, ở bên dưới tính toán xong không sài tại giá trị trả về luôn là `rax`....
 Đoạn này mình debug ra 19 xong cũng không hiểu lắm, mất 1 lúc khá lâu không ra flag mới nhận ra là lệch length (độ dài chuỗi cần `strlen` `"Wingardium Leviosa"` = 18)
+
 <p align="center">
+
   <img src="img_assets/Pasted image 20261006175202.png">
 </p>
+
 Ban đầu tưởng đoạn bơm shellcode vào dll này cũng chỉ cho vui tại mấy hàm trên gọi cho vui cơ mà để ra flag thì phải sửa lại đúng length = 18
 
 <p align="center">
+
   <img src="img_assets/Pasted image 20261006175512.png">
 </p>
+
 Đoạn này thì khôi phục lại code hàm `strlen` rồi hủy quyền.
 
 Thực hiện patch `v36` thành `0x12` (length 18)
+
 <p align="center">
+
   <img src="img_assets/Pasted image 20261006185417.png">
 </p>
 
 <p align="center">
+
   <img src="img_assets/Pasted image 20261006185529.png">
 </p>
 
